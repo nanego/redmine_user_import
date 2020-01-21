@@ -1,0 +1,22 @@
+<h2><%= l(:label_import_users) %></h2>
+
+<%= form_tag(user_import_settings_path(@import), :id => "import-form") do %>
+  <fieldset class="box tabular">
+    <legend><%= l(:label_options) %></legend>
+    <p>
+      <label for="import_settings_separator"><%= l(:label_fields_separator) %></label>
+      <%= select_tag 'import_settings[separator]',
+            options_for_select([[l(:label_comma_char), ','], [l(:label_semi_colon_char), ';']], @import.settings['separator']) %>
+    </p>
+    <p>
+      <label for="import_settings_wrapper"><%= l(:label_fields_wrapper) %></label>
+      <%= select_tag 'import_settings[wrapper]',
+          options_for_select([[l(:label_quote_char), "'"], [l(:label_double_quote_char), '"']], @import.settings['wrapper']) %>
+    </p>
+    <p>
+      <label for="import_settings_encoding"><%= l(:label_encoding) %></label>
+      <%= select_tag 'import_settings[encoding]', options_for_select(Setting::ENCODINGS, @import.settings['encoding'] || 'UTF-8') %>
+    </p>
+  </fieldset>
+  <p><%= submit_tag l(:label_next).html_safe + " &#187;".html_safe, :name => nil %></p>
+<% end %>

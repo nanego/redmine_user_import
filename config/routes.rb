@@ -1,0 +1,6 @@
+get   '/users/imports/new', :to => 'user_imports#new', :as => 'new_user_imports'
+post  '/user_imports', :to => 'user_imports#create', :as => 'user_imports'
+get   '/user_imports/:id', :to => 'user_imports#show', :as => 'user_import'
+match '/user_imports/:id/settings', :to => 'user_imports#settings', :via => [:get, :post], :as => 'user_import_settings'
+match '/user_imports/:id/mapping', :to => 'user_imports#mapping', :via => [:get, :post], :as => 'user_import_mapping'
+match '/user_imports/:id/run', :to => 'user_imports#run', :via => [:get, :post], :as => 'user_import_run'
