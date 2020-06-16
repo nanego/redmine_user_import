@@ -1,0 +1,24 @@
+<p>
+  <label for="import_mapping_projects"><%= l(:label_project_plural) %></label>
+  <%= select_tag "import_settings[memberships][projects]", project_tree_options_for_select(Project.active.sorted), multiple: true %>
+</p>
+
+<p>
+  <label for="import_mapping_roles"><%= l(:label_technical_role_plural) %></label>
+  <%= select_tag "import_settings[memberships][roles]", options_from_collection_for_select(Role.sorted, "id", "name"), multiple: true %>
+</p>
+
+<% if Redmine::Plugin.installed?(:redmine_limited_visibility) %>
+  <p>
+    <label for="import_mapping_functions"><%= l(:label_functional_roles) %></label>
+    <%= select_tag "import_settings[memberships][functions]", options_from_collection_for_select(Function.sorted, "id", "name"), multiple: true %>
+  </p>
+<% end %>
+
+<%= javascript_tag do %>
+  if ((typeof $().select2) === 'function') {
+  $('#import_settings_memberships_projects').select2();
+  $('#import_settings_memberships_roles').select2();
+  $('#import_settings_memberships_functions').select2();
+  }
+<% end %>

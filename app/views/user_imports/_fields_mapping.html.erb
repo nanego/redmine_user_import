@@ -1,6 +1,7 @@
 <p>
   <label for="import_mapping_subject"><%= l(:field_login) %></label>
   <%= mapping_select_tag @import, 'login' %>
+  <span style="color:grey;margin-left: 1em;">Si aucune colonne n'est sélectionnée, le login sera généré en fonction de l'adresse email.</span>
 </p>
 
 <p>

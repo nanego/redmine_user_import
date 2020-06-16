@@ -3,7 +3,7 @@ class UserImport < Import
   # Returns the objects that were imported
   def saved_objects
     object_ids = saved_items.pluck(:obj_id)
-    objects = User.where(:id => object_ids).order(:id)
+    User.where(id: object_ids).sorted
   end
 
   # Returns true if missing organizations should be created during the import
@@ -29,7 +29,7 @@ class UserImport < Import
     if login = row_value(row, 'login')
       attributes['login'] = login
     else
-      attributes['login'] = row_value(row, 'mail').split("@").first
+      attributes['login'] = row_value(row, 'mail').split("@").first.downcase
     end
 
     if organization_name = row_value(row, 'organization')

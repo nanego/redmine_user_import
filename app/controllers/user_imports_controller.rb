@@ -14,6 +14,10 @@ class UserImportsController < ApplicationController
   def new
   end
 
+  def index
+    @imports = UserImport.order('created_at desc')
+  end
+
   def create
     @import = UserImport.new
     @import.user = User.current
@@ -67,6 +71,7 @@ class UserImportsController < ApplicationController
           :max_time => 10.seconds
       )
       respond_to do |format|
+        create_memberships if @import.finished?
         format.html {
           if @import.finished?
             redirect_to user_import_path(@import)
@@ -81,8 +86,27 @@ class UserImportsController < ApplicationController
 
   private
 
+  def create_memberships
+    return if @import.settings['memberships'].blank?
+
+    projects = Project.where(id: @import.settings['memberships']['projects'])
+    roles = Role.where(id: @import.settings['memberships']['roles'])
+    functions = Function.where(id: @import.settings['memberships']['functions']) if Redmine::Plugin.installed?(:redmine_limited_visibility)
+
+    if projects.present? && roles.present?
+      @import.saved_objects.each do |user|
+        projects.each do |project|
+          member = Member.new(user: user, project: project)
+          member.roles = roles
+          member.functions = functions if functions.present?
+          member.save
+        end
+      end
+    end
+  end
+
   def find_import
-    @import = UserImport.where(:user_id => User.current.id, :filename => params[:id]).first
+    @import = UserImport.where(:filename => params[:id]).first
     if @import.nil?
       render_404
       return

@@ -22,6 +22,13 @@
     </div>
   </fieldset>
 
+  <fieldset class="box tabular">
+    <legend><%= l(:label_import_to_projects) %></legend>
+    <div>
+      <%= render :partial => 'fields_memberships' %>
+    </div>
+  </fieldset>
+
   <p>
     <%= button_tag("\xc2\xab " + l(:label_previous), :name => 'previous') %>
     <%= submit_tag l(:button_import) %>
