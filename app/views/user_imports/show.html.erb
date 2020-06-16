@@ -1,7 +1,12 @@
+<div class="contextual">
+  <%= link_to l(:label_user_imports), all_user_imports_path %>
+</div>
 <h2><%= l(:label_import_users) %></h2>
 
 <% if @import.saved_items.count > 0 %>
-  <p><%= l(:notice_import_finished_with_total, :count => @import.saved_items.count, :total => @import.total_items) %>:</p>
+  <p>
+    <%= l(:notice_import_finished_with_total, :count => @import.saved_items.count, :total => @import.total_items) %> :
+  </p>
 
   <ul id="saved-items">
     <% @import.saved_objects.each do |user| %>
@@ -40,3 +45,4 @@
 <% end %>
 
 <p><%= link_to l(:label_user_view_all), users_path(:set_filter => 1, :user_id => @import.saved_objects.map(&:id).join(',')) %></p>
+<p><%= link_to l(:label_user_imports), all_user_imports_path %></p>
