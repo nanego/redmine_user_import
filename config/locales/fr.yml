@@ -2,3 +2,4 @@ fr:
   label_import_users: Importer des utilisateurs
   label_user_view_all: Voir tous les utilisateurs
   label_import_to_projects: Affectation à des projets (facultatif)
+  notice_import_finished_with_total: "%{count} éléments sur %{total} ont été importés"
