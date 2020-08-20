@@ -29,7 +29,11 @@ class UserImport < Import
     if login = row_value(row, 'login')
       attributes['login'] = login
     else
-      attributes['login'] = row_value(row, 'mail').split("@").first.downcase
+      if row_value(row, 'mail').present?
+        attributes['login'] = row_value(row, 'mail').split("@").first.downcase
+      else
+        ""
+      end
     end
 
     if organization_name = row_value(row, 'organization')
