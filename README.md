@@ -1,7 +1,14 @@
 Redmine user import
 ======================
 
-How to import users from CSV files.
+Easily import users from CSV files.
+
+## Installation
+
+Note that this plugin has a required dependency. That's why you will also have to install this "technical" plugin:
+* **redmine_base_deface** [here](https://github.com/jbbarth/redmine_base_deface)
+
+Please apply general instructions for plugins [here](http://www.redmine.org/wiki/redmine/Plugins).
 
 ## Test status
 
