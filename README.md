@@ -22,3 +22,14 @@ Please apply general instructions for plugins [here](http://www.redmine.org/wiki
 [2]: https://travis-matrix-badges.herokuapp.com/repos/nanego/redmine_user_import/branches/master/2?use_travis_com=true
 [3]: https://travis-matrix-badges.herokuapp.com/repos/nanego/redmine_user_import/branches/master/3?use_travis_com=true
 [5]: https://travis-ci.com/nanego/redmine_user_import
+
+## Contributing
+
+1. Fork it
+2. Create your feature branch (`git checkout -b my-new-feature`)
+3. Commit your changes (`git commit -am 'Add some feature'`)
+4. Push to the branch (`git push origin my-new-feature`)
+5. Create new Pull Request
+
+## License
+MIT License.
