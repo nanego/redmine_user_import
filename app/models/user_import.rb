@@ -19,7 +19,8 @@ class UserImport < Import
     attributes = {
         'firstname' => row_value(row, 'firstname'),
         'lastname' => row_value(row, 'lastname'),
-        'mail' => row_value(row, 'mail')
+        'mail' => row_value(row, 'mail'),
+        'generate_password' => '1'
     }
 
     user.send :safe_attributes=, attributes
