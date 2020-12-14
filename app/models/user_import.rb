@@ -6,12 +6,17 @@ class UserImport < Import
     User.where(id: object_ids).sorted
   end
 
+  def unsaved_objects
+    User.where(id: $user_ids).sorted
+  end
+
   # Returns true if missing organizations should be created during the import
   def create_organizations?
     mapping['create_organizations'] == '1'
   end
 
   private
+  $user_ids = Array.new
 
   def build_object(row, item)
     user = User.new
@@ -49,6 +54,19 @@ class UserImport < Import
     end
 
     user.send :safe_attributes=, attributes
+
+    # check if user or email is found
+    userFound = User.where(:login => attributes['login'])
+    emailFound = EmailAddress.where(:address => row_value(row, 'mail'))
+    unless userFound.empty? && emailFound.empty?
+      if userFound.empty?
+        userId = emailFound.first.user_id
+        userFound = User.where(:id => userId)
+      end
+      $user_ids<<userFound.first.id
+      # update the organization of user
+      userFound.first.update_attribute(:organization,  organization)
+    end
 
     user
   end

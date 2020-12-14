@@ -22,7 +22,7 @@
   <label for="import_mapping_category"><%= l(:field_organization) %></label>
   <%= mapping_select_tag @import, 'organization' %>
   <label class="block">
-    <%= check_box_tag 'import_settings[mapping][create_organizations]', '0', false, disabled: true %>
-    <%= l(:label_create_missing_values) %> <span style="color:grey;">(Fonctionnalité désactivée pour l'instant. Le référentiel des organisations doit être géré manuellement.)</span>
+    <%= check_box_tag 'import_settings[mapping][create_organizations]', '1', false %>
+    <%= l(:label_create_missing_values) %> <span style="color:grey;"></span>
   </label>
 </p>

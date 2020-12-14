@@ -102,6 +102,21 @@ class UserImportsController < ApplicationController
           member.save
         end
       end
+      # update unsaved users
+      @import.unsaved_objects.each do |user|
+        projects.each do |project|
+          # check if member is exist
+          memberFound = Member.where(user: user, project: project)
+          if memberFound.empty?
+            member = Member.new(user: user, project: project)
+           else
+            member = memberFound.first
+          end
+          member.roles = roles
+          member.functions = functions if functions.present?
+          member.save
+        end
+      end
     end
   end
 

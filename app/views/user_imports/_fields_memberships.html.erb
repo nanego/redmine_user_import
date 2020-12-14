@@ -5,7 +5,7 @@
 
 <p>
   <label for="import_mapping_roles"><%= l(:label_technical_role_plural) %></label>
-  <%= select_tag "import_settings[memberships][roles]", options_from_collection_for_select(Role.sorted, "id", "name"), multiple: true %>
+  <%= select_tag "import_settings[memberships][roles]", options_from_collection_for_select(Role.givable.sorted, "id", "name"), multiple: true %>
 </p>
 
 <% if Redmine::Plugin.installed?(:redmine_limited_visibility) %>
