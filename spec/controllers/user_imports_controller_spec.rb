@@ -165,6 +165,8 @@ RSpec.describe UserImportsController, :type => :controller do
     expect(user_count_after).to eq(user_count_before + 2)
     expect(UserImport.count).to eq(1)
     expect(ImportItem.count).to eq(2)
+    expect(Journal.count).to eq(2)
+    expect(JournalDetail.count).to eq(4)
 
     assert_redirected_to "/user_imports/#{import.to_param}"
 

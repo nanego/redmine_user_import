@@ -1,6 +1,7 @@
 require 'csv'
 
 class UserImportsController < ApplicationController
+  include RedmineAdminActivity::Journalizable if Redmine::Plugin.installed?(:redmine_admin_activity)
   menu_item :users
 
   before_action :find_import, :only => [:show, :settings, :mapping, :run]
@@ -96,25 +97,20 @@ class UserImportsController < ApplicationController
     if projects.present? && roles.present?
       @import.saved_objects.each do |user|
         projects.each do |project|
-          member = Member.new(user: user, project: project)
-          member.roles = roles
-          member.functions = functions if functions.present?
-          member.save
+          create_member_for_import_users(user, project, roles, functions)
         end
       end
-      # update unsaved users
+      # update the information of user who already existed
       @import.unsaved_objects.each do |user|
         projects.each do |project|
           # check if member is exist
-          memberFound = Member.where(user: user, project: project)
-          if memberFound.empty?
-            member = Member.new(user: user, project: project)
+          member_found = Member.where(user: user, project: project)
+          if member_found.empty?
+            create_member_for_import_users(user, project, roles, functions)
            else
-            member = memberFound.first
+            member = member_found.first
+            update_member_for_import_users(member, user, project, roles, functions)
           end
-          member.roles = roles
-          member.functions = functions if functions.present?
-          member.save
         end
       end
     end
@@ -143,4 +139,24 @@ class UserImportsController < ApplicationController
   def max_items_per_request
     5
   end
+
+  def create_member_for_import_users(user, project, roles, functions = nil)
+    member = Member.new(user: user, project: project)
+    member.roles = roles
+    member.functions = functions if functions.present?
+    member.save
+    add_member_creation_to_journal(member, roles.pluck(:id), functions.pluck(:id)) if Redmine::Plugin.installed?(:redmine_admin_activity)
+  end
+
+  def update_member_for_import_users(member, user, project, roles, functions = nil)
+    previous_role_ids = member.role_ids
+    member.roles = roles
+    member.functions = functions
+    member.save
+    if Redmine::Plugin.installed?(:redmine_admin_activity)
+      previous_function_ids = member.function_ids if limited_visibility_plugin_installed?
+      add_member_edition_to_journal(member, previous_role_ids, roles.pluck(:id), previous_function_ids, functions.pluck(:id))
+    end
+  end
+
 end
