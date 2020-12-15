@@ -1,13 +1,8 @@
 require "rails_helper"
 require "spec_helper"
 
-# for add the folder of fixture in the same plugin
-RSpec.configure do |config|
-  config.fixture_path = __dir__+"/../fixtures"
-end
-
-def uploaded_test_file(name, mime)
-  fixture_file_upload("files/#{name}", mime, true)
+def uploaded_test_file(name, mime)  
+  fixture_file_upload(__dir__+"/../files/#{name}", mime, true)
 end
 
 def generate_import(fixture_name='import_users.csv')

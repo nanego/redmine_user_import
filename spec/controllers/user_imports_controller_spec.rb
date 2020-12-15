@@ -1,11 +1,6 @@
 require "rails_helper"
 require "spec_helper"
 
-#for add the folder of fixture in the same plugin
-RSpec.configure do |config|
-  config.fixture_path = __dir__+"/../fixtures"
-end
-
 RSpec.describe UserImportsController, :type => :controller do
 	fixtures :users, :email_addresses,:members , :member_roles, :roles, :projects, :organizations, :functions
 	render_views
