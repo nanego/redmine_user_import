@@ -15,7 +15,7 @@ RSpec.describe UserImportsController, :type => :controller do
     @request.session[:user_id] = 1    # user admin
   end
 
-  it "should_not_authorized_to_access_this_page_user_with_permission" do
+  it "should_authorized_to_access_this_page" do
     get :new
     assert_response :success
   end
