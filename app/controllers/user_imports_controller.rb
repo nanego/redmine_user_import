@@ -106,9 +106,9 @@ class UserImportsController < ApplicationController
       @import.unsaved_objects.each do |user|
         projects.each do |project|
           # check if member is exist,or create it
-          member = Member.find_or_create_by(user: user, project: project)         
-          member.roles = roles
-          member.functions = functions if functions.present?
+          member = Member.find_or_create_by(user: user, project: project) 
+          member.roles<<roles
+          member.functions<<functions if functions.present?
           member.save
         end
       end
