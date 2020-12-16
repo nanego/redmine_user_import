@@ -12,10 +12,12 @@
     <% @import.saved_objects.each do |user| %>
       <li>
         <%= link_to_user user %>
-        <% if user.organization.present? %>
-          (<%= link_to_organization user.organization %>)
-        <% else %>
-          - Organisation à ajouter
+        <% if Redmine::Plugin.installed?(:redmine_organizations) %>
+          <% if user.organization.present? %>
+            (<%= link_to_organization user.organization %>)
+          <% else %>
+            - Organisation à ajouter
+          <% end %>
         <% end %>
       </li>
     <% end %>
