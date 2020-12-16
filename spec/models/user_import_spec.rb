@@ -25,20 +25,21 @@ def generate_import_with_mapping(fixture_name='import_users.csv')
 end
 
 RSpec.describe UserImport, type: :model do
+
     fixtures :users, :email_addresses,:members , :member_roles, :roles, :projects
-    if Redmine::Plugin.installed?(:redmine_organizations)
-      fixtures :organizations
-    end
+    fixtures :organizations if Redmine::Plugin.installed?(:redmine_organizations)
     
     it "should_update_organization_of_users" do   
       import = generate_import_with_mapping
       import.save!
       import.run
+
       if Redmine::Plugin.installed?(:redmine_organizations)
         # test update Organization
         expect(User.all[-2].organization_id).to eq (1) 
         expect(User.last.organization_id).to eq (nil) 
       end
+      
     end
 
     it "should_not_import_user_already_existed" do

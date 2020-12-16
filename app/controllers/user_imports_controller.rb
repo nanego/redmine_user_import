@@ -150,13 +150,13 @@ class UserImportsController < ApplicationController
 
   def update_member_for_import_users(member, user, project, roles, functions = nil)
     previous_role_ids = member.role_ids
-    previous_function_ids = member.function_ids if limited_visibility_plugin_installed?
-    member.roles<<roles
-    member.functions<<functions if functions.present?
+    previous_function_ids = member.function_ids if Redmine::Plugin.installed?(:redmine_limited_visibility)
+    member.roles<<(roles - member.roles)
+    member.functions<<(functions - member.functions) if functions.present?
     member.save
     
     if Redmine::Plugin.installed?(:redmine_admin_activity)          
-      unless (previous_role_ids.sort == member.roles.pluck(:id).sort && previous_function_ids.uniq.sort == member.functions.pluck(:id).uniq.sort)        
+      unless (previous_role_ids.sort == member.roles.pluck(:id).sort && previous_function_ids.sort == member.functions.pluck(:id).sort)        
         add_member_edition_to_journal(member, previous_role_ids, member.roles.pluck(:id), previous_function_ids, member.functions.pluck(:id))
       end
     end
