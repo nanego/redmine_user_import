@@ -5,6 +5,16 @@ RSpec.describe UserImportsController, :type => :controller do
 	fixtures :users, :email_addresses,:members , :member_roles, :roles, :projects, :organizations, :functions
 	render_views
 
+  def run_import 
+    import = generate_import_with_mapping
+    import.settings['memberships'] = {"projects"=>["1", "3"], "roles"=>["1", "2"], "functions"=>["1"]}
+    import.save!
+    post :run, :params => {
+      :id => import
+    }
+    import.reload
+  end
+
 	before do
     User.current = nil
     @request.session[:user_id] = 1    # user admin
@@ -133,11 +143,31 @@ RSpec.describe UserImportsController, :type => :controller do
     assert_select '#import-progress'
   end
 
-  it "run_should_add_two_users_assignment_to_projects_specified _technical_functional_roles_and_display_assignments_history_project" do
-    member_count_before = Member.count
-    member_role_count_before = MemberRole.count
-    user_count_before = User.count
+  it "run_should_add_users" do
+    expect { 
+      run_import
+    }.to change{User.count}.by(2)
+  end 
 
+   it "run_should_add_members" do
+    expect { 
+      run_import
+    }.to change{Member.count}.by(4)
+  end 
+
+  it "run_should_assigne_to_projects_specified_technical_roles" do
+    expect { 
+      run_import
+    }.to change{MemberRole.count}.by(8)
+  end   
+
+  it "run_should_assigne_to_projects_specified_functional_roles" do
+    expect { 
+      run_import
+    }.to change{MemberFunction.count}.by(4)
+  end 
+
+  it "run_should_check_import_object" do
     import = generate_import_with_mapping
     import.settings['memberships'] = {"projects"=>["1", "3"], "roles"=>["1", "2"], "functions"=>["1"]}
     import.save!
@@ -146,23 +176,12 @@ RSpec.describe UserImportsController, :type => :controller do
     }
     import.reload
 
-    member_count_after = Member.count
-    member_role_count_after = MemberRole.count
-    user_count_after = User.count
-
     assert_equal true, import.finished
     expect(import.total_items).to eq(2)
     expect(import.type).to eq('UserImport')
-    #check assignment to projects specified during import with addition of technical and functional roles
-    expect(member_count_after).to eq(member_count_before + 4)
-    expect(member_role_count_after).to eq(member_role_count_before + 8)
-    expect(MemberFunction.count).to eq(4)
-    expect(user_count_after).to eq(user_count_before + 2)
     expect(UserImport.count).to eq(1)
     expect(ImportItem.count).to eq(2)
-
     assert_redirected_to "/user_imports/#{import.to_param}"
-
   end
 
   it "should_show_without_errors" do
