@@ -1,0 +1,3 @@
+login;lastname;firstname;mail;Organization
+dlopper;Lopper;Dave;dlopper@somenet.foo;org-a
+new_user;Lname_new_user;Fname_new_user;new_user_mail@example.com;org-a

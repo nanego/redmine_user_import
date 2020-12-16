@@ -7,7 +7,7 @@ class UserImport < Import
   end
 
   def unsaved_objects
-    User.where(id: $user_ids).sorted
+    User.where(id: @user_ids).sorted
   end
 
   # Returns true if missing organizations should be created during the import
@@ -16,7 +16,6 @@ class UserImport < Import
   end
 
   private
-  $user_ids = Array.new
 
   def build_object(row, item)
     user = User.new
@@ -30,6 +29,8 @@ class UserImport < Import
     user.send :safe_attributes=, attributes
 
     attributes = {}
+   
+    @user_ids ||= [] 
 
     if login = row_value(row, 'login')
       attributes['login'] = login
@@ -41,18 +42,19 @@ class UserImport < Import
       end
     end
 
-    if organization_name = row_value(row, 'organization')
-      if organization = Organization.find_by_identifier(organization_name.parameterize)
-        attributes['organization_id'] = organization.id
-      elsif create_organizations?
-        organization = Organization.new
-        organization.name = organization_name
-        if organization.save
+    if Redmine::Plugin.installed?(:redmine_organizations)
+      if organization_name = row_value(row, 'organization')
+        if organization = Organization.find_by_identifier(organization_name.parameterize)
           attributes['organization_id'] = organization.id
+        elsif create_organizations?
+          organization = Organization.new
+          organization.name = organization_name
+          if organization.save
+            attributes['organization_id'] = organization.id
+          end
         end
       end
     end
-
     user.send :safe_attributes=, attributes
 
     # check if user or email is found
@@ -63,9 +65,9 @@ class UserImport < Import
         userId = emailFound.first.user_id
         userFound = User.where(:id => userId)
       end
-      $user_ids<<userFound.first.id
+      @user_ids<<userFound.first.id
       # update the organization of user
-      userFound.first.update_attribute(:organization,  organization)
+      userFound.first.update_attribute(:organization,  organization) if Redmine::Plugin.installed?(:redmine_organizations)
     end
 
     user
