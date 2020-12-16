@@ -43,14 +43,16 @@ class UserImport < Import
       end
     end
 
-    if organization_name = row_value(row, 'organization')
-      if organization = Organization.find_by_identifier(organization_name.parameterize)
-        attributes['organization_id'] = organization.id
-      elsif create_organizations?
-        organization = Organization.new
-        organization.name = organization_name
-        if organization.save
+    if Redmine::Plugin.installed?(:redmine_organizations)
+      if organization_name = row_value(row, 'organization')
+        if organization = Organization.find_by_identifier(organization_name.parameterize)
           attributes['organization_id'] = organization.id
+        elsif create_organizations?
+          organization = Organization.new
+          organization.name = organization_name
+          if organization.save
+            attributes['organization_id'] = organization.id
+          end
         end
       end
     end
@@ -67,7 +69,7 @@ class UserImport < Import
       end
       @user_ids<<userFound.first.id
       # update the organization of user
-      userFound.first.update_attribute(:organization,  organization)
+      userFound.first.update_attribute(:organization,  organization) if Redmine::Plugin.installed?(:redmine_organizations)
     end
 
     user

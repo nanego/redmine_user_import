@@ -2,7 +2,11 @@ require "rails_helper"
 require "spec_helper"
 
 RSpec.describe UserImportsController, :type => :controller do
-	fixtures :users, :email_addresses,:members , :member_roles, :roles, :projects, :organizations, :functions
+
+	fixtures :users, :email_addresses,:members , :member_roles, :roles, :projects
+  fixtures :organizations if Redmine::Plugin.installed?(:redmine_organizations)
+  fixtures :functions if Redmine::Plugin.installed?(:redmine_limited_visibility)
+
 	render_views
 
   def run_import 
@@ -125,10 +129,11 @@ RSpec.describe UserImportsController, :type => :controller do
     assert_select 'select[name=?]', 'import_settings[memberships][roles][]' do
       assert_select 'option', role_count
     end
-
-    function_count = Function.count
-    assert_select 'select[name=?]', 'import_settings[memberships][functions][]' do
-      assert_select 'option', function_count
+    if Redmine::Plugin.installed?(:redmine_limited_visibility)
+      function_count = Function.count
+      assert_select 'select[name=?]', 'import_settings[memberships][functions][]' do
+        assert_select 'option', function_count
+      end
     end
 
   end
@@ -164,7 +169,7 @@ RSpec.describe UserImportsController, :type => :controller do
   it "run_should_assigne_to_projects_specified_functional_roles" do
     expect { 
       run_import
-    }.to change{MemberFunction.count}.by(4)
+    }.to change{MemberFunction.count}.by(4) if Redmine::Plugin.installed?(:redmine_limited_visibility)
   end 
 
   it "run_should_check_import_object" do
