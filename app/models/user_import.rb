@@ -56,7 +56,6 @@ class UserImport < Import
         end
       end
     end
-
     user.send :safe_attributes=, attributes
 
     # check if user or email is found

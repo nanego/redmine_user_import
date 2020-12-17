@@ -129,13 +129,14 @@ RSpec.describe UserImportsController, :type => :controller do
     assert_select 'select[name=?]', 'import_settings[memberships][roles][]' do
       assert_select 'option', role_count
     end
+
     if Redmine::Plugin.installed?(:redmine_limited_visibility)
       function_count = Function.count
       assert_select 'select[name=?]', 'import_settings[memberships][functions][]' do
         assert_select 'option', function_count
       end
     end
-
+    
   end
 
    it "get_run_should_display_import_progress" do
@@ -186,6 +187,8 @@ RSpec.describe UserImportsController, :type => :controller do
     expect(import.type).to eq('UserImport')
     expect(UserImport.count).to eq(1)
     expect(ImportItem.count).to eq(2)
+    expect(Journal.count).to eq(2) if Redmine::Plugin.installed?(:redmine_admin_activity)
+    expect(JournalDetail.count).to eq(4) if Redmine::Plugin.installed?(:redmine_admin_activity)
     assert_redirected_to "/user_imports/#{import.to_param}"
   end
 
