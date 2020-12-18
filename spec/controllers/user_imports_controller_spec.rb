@@ -29,6 +29,19 @@ RSpec.describe UserImportsController, :type => :controller do
     assert_response :success
   end
 
+  it "should_not_authorized_to_access_this_page_user_without_permission" do    
+    User.current = nil
+    @request.session[:user_id] = 7
+
+    get :new    
+    assert_response 403
+  end
+
+  it "shoud_display_permission_users_import"do
+    permission_array = Redmine::AccessControl.permissions.to_a
+    expect(permission_array.last.name).to eq(:users_import)    
+  end
+  
 	it "new_should_display_the_upload_form" do
 		get :new
     assert_response :success
