@@ -1,6 +1,10 @@
 <p>
   <label for="import_mapping_projects"><%= l(:label_project_plural) %></label>
-  <%= select_tag "import_settings[memberships][projects]", project_tree_options_for_select(Project.active.sorted), multiple: true %>
+  <% if User.current.admin?%>
+    <%= select_tag "import_settings[memberships][projects]", project_tree_options_for_select(Project.active.sorted), multiple: true %>
+  <% else %>
+    <%= select_tag "import_settings[memberships][projects]", project_tree_options_for_select(Project.all_public.active.sorted), multiple: true %>
+  <% end %>
 </p>
 
 <p>

@@ -5,3 +5,4 @@ fr:
   notice_import_finished_with_total: "%{count} éléments sur %{total} ont été importés"
   label_user_imports: Voir tous les imports réalisés
   label_new_csv_import: Nouvel import CSV
+  permission_users_import: Importer des utilisateurs
