@@ -1,68 +1,54 @@
-require "rails_helper"
 require "spec_helper"
+require File.dirname(__FILE__) + "/../support/import_spec_helpers"
 
-def uploaded_test_file(name, mime)  
-  fixture_file_upload(__dir__+"/../files/#{name}", mime, true)
-end
+describe UserImport, type: :model do
 
-def generate_import(fixture_name='import_users.csv')
-  import = UserImport.new
-  import.user_id = 2
-  import.file = uploaded_test_file(fixture_name, 'text/csv')
-  import.save!
-  import
-end
+  fixtures :users, :email_addresses, :members, :member_roles, :roles, :projects
+  fixtures :functions if Redmine::Plugin.installed?(:redmine_limited_visibility)
+  if organizations_plugin_installed?
+    fixtures :organizations
+    let!(:org_a) { Organization.find(1) }
+  end
 
-def generate_import_with_mapping(fixture_name='import_users.csv')
-  import = generate_import(fixture_name)
+  let!(:import_with_new_users) { generate_user_import_with_mapping }
+  let!(:import_with_existing_users) { generate_user_import_with_mapping('import_users_exists.csv') }
+  let!(:existing_user) { User.find(3) }
 
-   import.settings = {
-     'separator' => ";", 'wrapper' => '"', 'encoding' => "UTF-8", "notifications"=>"0",
-     'mapping' => {"login"=>"0", "firstname"=>"2", "lastname"=>"1", "mail"=>"3", "organization"=>"4", "create_organizations"=>"0"},
-   }
-   import.save!
-   import
-end
-
-RSpec.describe UserImport, type: :model do
-
-    fixtures :users, :email_addresses,:members , :member_roles, :roles, :projects
-    fixtures :organizations if Redmine::Plugin.installed?(:redmine_organizations)
-    
-    it "should_update_organization_of_users" do   
-      import = generate_import_with_mapping
+  it "creates new users with according organization if any" do
+    expect {
+      import = import_with_new_users
       import.save!
       import.run
+    }.to change { User.count }.by(2)
 
-      if Redmine::Plugin.installed?(:redmine_organizations)
-        # test update Organization
-        expect(User.all[-2].organization_id).to eq (1) 
-        expect(User.last.organization_id).to eq (nil) 
-      end
-      
+    if Redmine::Plugin.installed?(:redmine_organizations)
+      added_users = User.last(2)
+      expect(added_users.first.organization).to eq org_a
+      expect(added_users.second.organization).to eq nil
     end
+  end
 
-    it "should_not_import_user_already_existed" do
-      user_count_before = User.count
-      import = generate_import_with_mapping('import_users_exists.csv')
+  it "does not create new users if they already exist" do
+    expect {
+      import = import_with_existing_users
       import.save!
       import.run
-      user_count_after = User.count
-
-      expect(ImportItem.first.message).to eq("Email has already been taken\nLogin has already been taken")
-
-      expect(user_count_before).to eq(user_count_after - 1)
-      # update user's organization
-      expect(User.find(3).organization_id).to eq(1) if Redmine::Plugin.installed?(:redmine_organizations)
-
+    }.to change { User.count }.by(1)
+    existing_user.reload
+    expect(ImportItem.first.message).to eq("Email has already been taken\nLogin has already been taken")
+    if Redmine::Plugin.installed?(:redmine_organizations)
+      expect(User.last.organization).to eq(org_a)
+      expect(existing_user.organization).to eq(org_a)
     end
+  end
 
-  it "should_remove_the_file" do
-    import = generate_import_with_mapping
+  it "removes the uploaded file" do
+    import = import_with_new_users
     file_path = import.filepath
     assert File.exists?(file_path)
 
     import.run
+
     assert !File.exists?(file_path)
   end
 

@@ -1,27 +1,18 @@
-require "rails_helper"
 require "spec_helper"
+require File.dirname(__FILE__) + "/../support/import_spec_helpers"
 
 RSpec.describe UserImportsController, :type => :controller do
+  render_views
 
-	fixtures :users, :email_addresses,:members , :member_roles, :roles, :projects
+  fixtures :users, :email_addresses, :members, :member_roles, :roles, :projects
   fixtures :organizations if Redmine::Plugin.installed?(:redmine_organizations)
   fixtures :functions if Redmine::Plugin.installed?(:redmine_limited_visibility)
 
-	render_views
+  let!(:existing_user) { User.find(3) }
 
-  def run_import 
-    import = generate_import_with_mapping
-    import.settings['memberships'] = {"projects"=>["1", "3"], "roles"=>["1", "2"], "functions"=>["1"]}
-    import.save!
-    post :run, :params => {
-      :id => import
-    }
-    import.reload
-  end
-
-	before do
+  before do
     User.current = nil
-    @request.session[:user_id] = 1    # user admin
+    @request.session[:user_id] = 1 # user admin
   end
 
   it "should_authorized_to_access_this_page" do
@@ -29,16 +20,16 @@ RSpec.describe UserImportsController, :type => :controller do
     assert_response :success
   end
 
-	it "new_should_display_the_upload_form" do
-		get :new
+  it "new_should_display_the_upload_form" do
+    get :new
     assert_response :success
     assert_select 'input[name=?]', 'file'
-	end
+  end
 
-	it "create_should_save_the_file" do
-		import_count = UserImport.count
+  it "create_should_save_the_file" do
+    import_count = UserImport.count
     post :create, :params => {
-      :file => uploaded_test_file('import_users.csv', 'text/csv')
+      :file => upload_user_test_file('import_users.csv', 'text/csv')
     }
 
     import = UserImport.last
@@ -48,23 +39,24 @@ RSpec.describe UserImportsController, :type => :controller do
     assert import.file_exists?
     assert_match /\A[0-9a-f]+\z/, import.filename
     assert_response 302
-	end
-
-  it "get_settings_should_display_settings_form" do
-    import = generate_import
-    get :settings, :params => {
-        :id => import.to_param
-      }
-    assert_response :success
-    assert_select 'select[name=?]', 'import_settings[separator]'
-    assert_select 'select[name=?]', 'import_settings[wrapper]'
-    assert_select 'select[name=?]', 'import_settings[encoding]'
   end
 
-  it "post_settings_should_update_settings" do
-    import = generate_import
+  context "import new users" do
 
-    post :settings, :params => {
+    let!(:import) { generate_user_import }
+
+    it "get_settings_should_display_settings_form" do
+      get :settings, :params => {
+        :id => import.to_param
+      }
+      assert_response :success
+      assert_select 'select[name=?]', 'import_settings[separator]'
+      assert_select 'select[name=?]', 'import_settings[wrapper]'
+      assert_select 'select[name=?]', 'import_settings[encoding]'
+    end
+
+    it "post_settings_should_update_settings" do
+      post :settings, :params => {
         :id => import.to_param,
         :import_settings => {
           :separator => ":",
@@ -72,152 +64,195 @@ RSpec.describe UserImportsController, :type => :controller do
           :encoding => "UTF-8",
         }
       }
-    assert_redirected_to "/user_imports/#{import.to_param}/mapping"
+      assert_redirected_to "/user_imports/#{import.to_param}/mapping"
 
-    import.reload
-    expect(import.settings['separator']).to eq(":")
-    expect(import.settings['wrapper']).to eq("|")
-    expect(import.settings['encoding']).to eq("UTF-8")
-    expect(import.total_items).to eq(2)
-  end
-
-  it "get_mapping_should_display_mapping_form" do
-    import = generate_import
-    import.settings = {'separator' => ";", 'wrapper' => '"', 'encoding' => "ISO-8859-1"}
-    import.save!
-
-    get :mapping, :params => {
-      :id => import.to_param
-    }
-
-    assert_response :success
-    assert_select 'select[name=?]', 'import_settings[mapping][login]' do
-      assert_select 'option', 6
-      assert_select 'option[value="0"]', :text => 'login'
-      assert_select 'option[value="1"]', :text => 'lastname'
-      assert_select 'option[value="2"]', :text => 'firstname'
-      assert_select 'option[value="3"]', :text => 'mail'
-      assert_select 'option[value="4"]', :text => 'Organization'
+      import.reload
+      expect(import.settings['separator']).to eq(":")
+      expect(import.settings['wrapper']).to eq("|")
+      expect(import.settings['encoding']).to eq("UTF-8")
+      expect(import.total_items).to eq(2)
     end
 
-     assert_select 'table.sample-data' do
-       assert_select 'tr', 3
-       assert_select 'td', 15
-     end
-  end
+    it "get_mapping_should_display_mapping_form" do
+      import.settings = { 'separator' => ";", 'wrapper' => '"', 'encoding' => "ISO-8859-1" }
+      import.save!
 
-  it "get_mapping_should_display_mapping_memberships_form" do
-    import = generate_import
-    import.settings = {'separator' => ";", 'wrapper' => '"', 'encoding' => "ISO-8859-1"}
-    import.save!
+      get :mapping, :params => {
+        :id => import.to_param
+      }
 
-    get :mapping, :params => {
-      :id => import.to_param
-    }
-    assert_response :success
-    if User.current.admin?
-      project_count = Project.active.count
-    else
-      project_count = Project.all_public.active.count
-    end
+      assert_response :success
+      assert_select 'select[name=?]', 'import_settings[mapping][login]' do
+        assert_select 'option', 6
+        assert_select 'option[value="0"]', :text => 'login'
+        assert_select 'option[value="1"]', :text => 'lastname'
+        assert_select 'option[value="2"]', :text => 'firstname'
+        assert_select 'option[value="3"]', :text => 'mail'
+        assert_select 'option[value="4"]', :text => 'Organization'
+      end
 
-    assert_select 'select[name=?]', 'import_settings[memberships][projects][]' do
-      assert_select 'option', project_count
-    end
-
-    role_count = Role.givable.count
-    assert_select 'select[name=?]', 'import_settings[memberships][roles][]' do
-      assert_select 'option', role_count
-    end
-
-    if Redmine::Plugin.installed?(:redmine_limited_visibility)
-      function_count = Function.count
-      assert_select 'select[name=?]', 'import_settings[memberships][functions][]' do
-        assert_select 'option', function_count
+      assert_select 'table.sample-data' do
+        assert_select 'tr', 3
+        assert_select 'td', 15
       end
     end
-    
+
+    it "get_mapping_should_display_mapping_memberships_form" do
+      import.settings = { 'separator' => ";", 'wrapper' => '"', 'encoding' => "ISO-8859-1" }
+      import.save!
+
+      get :mapping, :params => {
+        :id => import.to_param
+      }
+      assert_response :success
+      if User.current.admin?
+        project_count = Project.active.count
+      else
+        project_count = Project.all_public.active.count
+      end
+
+      assert_select 'select[name=?]', 'import_settings[memberships][projects][]' do
+        assert_select 'option', project_count
+      end
+
+      role_count = Role.givable.count
+      assert_select 'select[name=?]', 'import_settings[memberships][roles][]' do
+        assert_select 'option', role_count
+      end
+
+      if Redmine::Plugin.installed?(:redmine_limited_visibility)
+        function_count = Function.count
+        assert_select 'select[name=?]', 'import_settings[memberships][functions][]' do
+          assert_select 'option', function_count
+        end
+      end
+
+    end
+
   end
 
-   it "get_run_should_display_import_progress" do
-    import = generate_import_with_mapping
+  context "import users with mapping" do
 
-    get :run, :params => {
+    let!(:import) { generate_user_import_with_mapping }
+
+    def run_import_with_memberships(csv_file = nil)
+      if csv_file
+        import = generate_user_import_with_mapping(csv_file)
+      else
+        import = generate_user_import_with_mapping
+      end
+      import.settings['memberships'] = { "projects" => ["1", "3"], "roles" => ["1", "2"], "functions" => ["1"] }
+      import.save!
+      post :run, :params => {
         :id => import
       }
-    assert_response :success
-    assert_select '#import-progress'
-  end
+      import.reload
+    end
 
-  it "run_should_add_users" do
-    expect { 
-      run_import
-    }.to change{User.count}.by(2)
-  end 
+    it "get_run_should_display_import_progress" do
 
-   it "run_should_add_members" do
-    expect { 
-      run_import
-    }.to change{Member.count}.by(4)
-  end 
+      get :run, :params => {
+        :id => import
+      }
+      assert_response :success
+      assert_select '#import-progress'
+    end
 
-  it "run_should_assigne_to_projects_specified_technical_roles" do
-    expect { 
-      run_import
-    }.to change{MemberRole.count}.by(8)
-  end   
+    it "run_should_add_users" do
+      expect {
+        run_import_with_memberships
+      }.to change { User.count }.by(2)
+    end
 
-  it "run_should_assigne_to_projects_specified_functional_roles" do
-    expect { 
-      run_import
-    }.to change{MemberFunction.count}.by(4) if Redmine::Plugin.installed?(:redmine_limited_visibility)
-  end 
+    it "run_should_add_members" do
+      expect {
+        run_import_with_memberships
+      }.to change { Member.count }.by(4)
+    end
 
-  it "run_should_check_import_object" do
-    import = generate_import_with_mapping
-    import.settings['memberships'] = {"projects"=>["1", "3"], "roles"=>["1", "2"], "functions"=>["1"]}
-    import.save!
-    post :run, :params => {
-      :id => import
-    }
-    import.reload
+    it "run_should_assigne_to_projects_specified_technical_roles" do
+      expect {
+        run_import_with_memberships
+      }.to change { MemberRole.count }.by(8)
+    end
 
-    assert_equal true, import.finished
-    expect(import.total_items).to eq(2)
-    expect(import.type).to eq('UserImport')
-    expect(UserImport.count).to eq(1)
-    expect(ImportItem.count).to eq(2)
-    expect(Journal.count).to eq(2) if Redmine::Plugin.installed?(:redmine_admin_activity)
-    expect(JournalDetail.count).to eq(4) if Redmine::Plugin.installed?(:redmine_admin_activity)
-    assert_redirected_to "/user_imports/#{import.to_param}"
-  end
+    it "run_should_assigne_to_projects_specified_functional_roles" do
+      expect {
+        run_import_with_memberships
+      }.to change { MemberFunction.count }.by(4) if Redmine::Plugin.installed?(:redmine_limited_visibility)
+    end
 
-  it "should_show_without_errors" do
-    import = generate_import_with_mapping
-    import.run
-    assert_equal 0, import.unsaved_items.count
+    it "run_should_check_import_object" do
+      import.settings['memberships'] = { "projects" => ["1", "3"], "roles" => ["1", "2"], "functions" => ["1"] }
+      import.save!
+      post :run, :params => {
+        :id => import
+      }
+      import.reload
 
-    get :show, :params => {
+      expect(import.finished).to be_truthy
+      expect(import.total_items).to eq 2
+      expect(import.type).to eq 'UserImport'
+      expect(UserImport.count).to eq 1
+      expect(ImportItem.count).to eq 2
+      expect(Journal.count).to eq(2) if Redmine::Plugin.installed?(:redmine_admin_activity)
+      expect(JournalDetail.count).to eq(4) if Redmine::Plugin.installed?(:redmine_admin_activity)
+      assert_redirected_to "/user_imports/#{import.to_param}"
+    end
+
+    it "should_show_without_errors" do
+      import.run
+      assert_equal 0, import.unsaved_items.count
+
+      get :show, :params => {
         :id => import.to_param
       }
-    assert_response :success
+      assert_response :success
 
-    assert_select 'ul#saved-items li', import.saved_items.count
-    assert_select 'table#unsaved-items', 0
-  end
+      assert_select 'ul#saved-items li', import.saved_items.count
+      assert_select 'table#unsaved-items', 0
+    end
 
-  it "should_show_with_errors_unsaved_items_when_import_user_exist" do
-    import = generate_import_with_mapping('import_users_exists.csv')
-    import.run
-
-    get :show, :params => {
+    it "should_show_with_errors_unsaved_items_when_import_user_exist" do
+      import = run_import_with_memberships('import_users_exists.csv')
+      get :show, :params => {
         :id => import.to_param
       }
+      assert_response :success
+      expect(import.saved_items.count).to eq(1)
+      expect(import.unsaved_items.count).to eq(1)
+      assert_select 'table#unsaved-items tbody tr', 1
+    end
 
-    assert_response :success
-    expect(import.saved_items.count).to eq(1)
-    expect(import.unsaved_items.count).to eq(1)
-    assert_select 'table#unsaved-items tbody tr', 1
+    context "updating existing users" do
+
+      let!(:project_1) { Project.find(1) }
+      let!(:role_manager) { Role.find(1) }
+      let!(:role_developer) { Role.find(2) }
+
+      it "adds some roles to a user" do
+        expect(existing_user.roles_for_project(project_1)).to eq [role_developer]
+
+        run_import_with_memberships('import_users_exists.csv')
+        existing_user.reload
+
+        expect(existing_user.roles_for_project(project_1)).to eq [role_manager, role_developer]
+      end
+
+      if Redmine::Plugin.installed?(:redmine_limited_visibility)
+        let!(:function_1) { Function.find(1) }
+
+        it "adds some functions to a user" do
+          expect(existing_user.functions_for_project(project_1)).to be_empty
+
+          run_import_with_memberships('import_users_exists.csv')
+          existing_user.reload
+
+          expect(existing_user.functions_for_project(project_1)).to eq [function_1]
+        end
+      end
+
+    end
 
   end
 

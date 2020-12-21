@@ -101,7 +101,7 @@ class UserImportsController < ApplicationController
         end
       end
        # update the information of user who already existed
-      @import.unsaved_objects.each do |user|
+      @import.updated_users.each do |user|
         projects.each do |project|
           # check if member is exist
           member_found = Member.where(user: user, project: project)
