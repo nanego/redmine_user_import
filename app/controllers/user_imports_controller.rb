@@ -72,7 +72,7 @@ class UserImportsController < ApplicationController
           :max_time => 10.seconds
       )
       respond_to do |format|
-        create_memberships if @import.finished?
+        create_memberships
         format.html {
           if @import.finished?
             redirect_to user_import_path(@import)

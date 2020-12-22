@@ -55,7 +55,7 @@ class UserImport < Import
     end
 
     # check if user is already present
-    known_user = User.joins(:email_addresses).where('email_addresses.address = ?', row_value(row, 'mail').downcase).first
+    known_user = User.joins(:email_addresses).where('LOWER(email_addresses.address) = ?', row_value(row, 'mail').downcase.strip).first
     if known_user.present?
       updated_users << known_user
       known_user.update_attribute(:organization_id, organization.id) if organization.present? && Redmine::Plugin.installed?(:redmine_organizations)
