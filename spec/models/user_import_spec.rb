@@ -29,10 +29,8 @@ RSpec.describe UserImport, type: :model do
     fixtures :users, :email_addresses,:members , :member_roles, :roles, :projects
     fixtures :organizations if Redmine::Plugin.installed?(:redmine_organizations)
     
-    it "should test_authorized" do
-      role_developer = Role.find(2)
-      role_developer.permissions<<:users_import
-      role_developer.save
+    it "should test_authorized" do      
+      Role.find(2).add_permission! :users_import     
       assert  UserImport.authorized?(User.find(1)) # admins
       assert  UserImport.authorized?(User.find(2)) #user with permission user_import
       assert  !UserImport.authorized?(User.find(7)) #user  does not have permission user_import
