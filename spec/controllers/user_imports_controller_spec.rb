@@ -38,8 +38,8 @@ RSpec.describe UserImportsController, :type => :controller do
   end
 
   it "shoud_display_permission_users_import"do
-    permission_array = Redmine::AccessControl.permissions.to_a
-    expect(permission_array.last.name).to eq(:users_import)    
+    permission_array = Redmine::AccessControl.permissions.to_a.map(&:name)    
+    expect(permission_array).to include(:users_import)    
   end
   
 	it "new_should_display_the_upload_form" do
