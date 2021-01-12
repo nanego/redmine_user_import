@@ -10,8 +10,8 @@ class UserImport < Import
     User.where(id: object_ids).sorted
   end
 
-  def unsaved_objects
-    User.where(id: @user_ids).sorted
+  def updated_users
+    @updated_users ||= []
   end
 
   # Returns true if missing organizations should be created during the import
@@ -25,16 +25,11 @@ class UserImport < Import
     user = User.new
 
     attributes = {
-        'firstname' => row_value(row, 'firstname'),
-        'lastname' => row_value(row, 'lastname'),
-        'mail' => row_value(row, 'mail')
+      'firstname' => row_value(row, 'firstname'),
+      'lastname' => row_value(row, 'lastname'),
+      'mail' => row_value(row, 'mail'),
+      'generate_password' => '1'
     }
-
-    user.send :safe_attributes=, attributes
-
-    attributes = {}
-   
-    @user_ids ||= [] 
 
     if login = row_value(row, 'login')
       attributes['login'] = login
@@ -45,6 +40,8 @@ class UserImport < Import
         ""
       end
     end
+
+    user.send :safe_attributes=, attributes
 
     if Redmine::Plugin.installed?(:redmine_organizations)
       if organization_name = row_value(row, 'organization')
@@ -58,20 +55,14 @@ class UserImport < Import
           end
         end
       end
+      user.organization = organization if organization.present?
     end
-    user.send :safe_attributes=, attributes
 
-    # check if user or email is found
-    userFound = User.where(:login => attributes['login'])
-    emailFound = EmailAddress.where(:address => row_value(row, 'mail'))
-    unless userFound.empty? && emailFound.empty?
-      if userFound.empty?
-        userId = emailFound.first.user_id
-        userFound = User.where(:id => userId)
-      end
-      @user_ids<<userFound.first.id
-      # update the organization of user
-      userFound.first.update_attribute(:organization,  organization) if Redmine::Plugin.installed?(:redmine_organizations)
+    # check if user is already present
+    known_user = User.joins(:email_addresses).where('LOWER(email_addresses.address) = ?', row_value(row, 'mail').downcase.strip).first
+    if known_user.present?
+      updated_users << known_user
+      known_user.update_attribute(:organization_id, organization.id) if organization.present? && Redmine::Plugin.installed?(:redmine_organizations)
     end
 
     user
