@@ -1,5 +1,9 @@
 class UserImport < Import
 
+  def self.authorized?(user)
+    user.allowed_to?(:users_import, nil, :global => true)
+  end
+
   # Returns the objects that were imported
   def saved_objects
     object_ids = saved_items.pluck(:obj_id)

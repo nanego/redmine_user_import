@@ -5,7 +5,7 @@ class UserImportsController < ApplicationController
   menu_item :users
 
   before_action :find_import, :only => [:show, :settings, :mapping, :run]
-  before_action :authorize_global
+  before_action :authorize_user_import
 
   helper :users
   helper :issues
@@ -160,6 +160,10 @@ class UserImportsController < ApplicationController
         add_member_edition_to_journal(member, previous_role_ids, member.roles.pluck(:id), previous_function_ids, member.functions.pluck(:id))
       end
     end
+  end
+
+  def authorize_user_import    
+    return render_403 unless UserImport.authorized?(User.current)
   end
 
 end

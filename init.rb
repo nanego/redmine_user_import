@@ -6,4 +6,6 @@ Redmine::Plugin.register :redmine_user_import do
   url 'https://github.com/nanego/redmine_user_import'
   requires_redmine_plugin :redmine_base_rspec, :version_or_higher => '0.0.4' if Rails.env.test?
   requires_redmine_plugin :redmine_base_deface, :version_or_higher => '0.0.1'
+
+  permission :users_import, {:controller => 'user_imports'}
 end

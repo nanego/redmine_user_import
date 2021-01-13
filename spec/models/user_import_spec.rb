@@ -14,6 +14,13 @@ describe UserImport, type: :model do
   let!(:import_with_existing_users) { generate_user_import_with_mapping('import_users_exists.csv') }
   let!(:existing_user) { User.find(3) }
 
+    it "should test_authorized" do      
+      Role.find(2).add_permission! :users_import     
+    assert  UserImport.authorized?(User.find(1))  # admins
+    assert  UserImport.authorized?(User.find(2))  # user with permission user_import
+    assert  !UserImport.authorized?(User.find(7)) # user does not have permission user_import
+  end
+
   it "creates new users with according organization if any" do
     expect {
       import = import_with_new_users
