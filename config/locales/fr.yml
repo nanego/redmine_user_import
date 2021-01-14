@@ -6,3 +6,4 @@ fr:
   label_user_imports: Voir tous les imports réalisés
   label_new_csv_import: Nouvel import CSV
   permission_users_import: Importer des utilisateurs
+  label_import_users_csv: Importer des utilisateurs (CSV)
