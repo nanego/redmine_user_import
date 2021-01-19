@@ -63,9 +63,17 @@ class UserImport < Import
     if known_user.present?
       updated_users << known_user
       known_user.update_attribute(:organization_id, organization.id) if organization.present? && Redmine::Plugin.installed?(:redmine_organizations)
-    end
-
+    else
+      #add callback for new users      
+      add_callback(item.position, 'notify_by_mail') if self.settings["notifications"] == "1"
+    end     
     user
+
+  end
+
+  # Callback that notify each user by email with his password
+  def notify_by_mail_callback(user)
+    Mailer.deliver_account_information(user, user.password)
   end
 
 end
