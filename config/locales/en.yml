@@ -1,3 +1,10 @@
 # English strings go here for Rails i18n
 en:
   label_user_imports: Show all imports made
+  label_import_users: Import users
+  label_user_view_all: View all users
+  label_import_to_projects: Assignment to projects (optional)
+  notice_import_finished_with_total: "%{count} items on %{total} have been imported"  
+  label_new_csv_import: New CSV import
+  permission_users_import: Import users
+  label_import_users_csv: Import users (CSV)
