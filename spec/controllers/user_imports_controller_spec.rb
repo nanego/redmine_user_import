@@ -66,6 +66,7 @@ RSpec.describe UserImportsController, :type => :controller do
       assert_select 'select[name=?]', 'import_settings[separator]'
       assert_select 'select[name=?]', 'import_settings[wrapper]'
       assert_select 'select[name=?]', 'import_settings[encoding]'
+      assert_select 'input[name=?]', 'import_settings[notifications]'
     end
 
     it "post_settings_should_update_settings" do
@@ -75,6 +76,7 @@ RSpec.describe UserImportsController, :type => :controller do
           :separator => ":",
           :wrapper => "|",
           :encoding => "UTF-8",
+          :notifications => "1",
         }
       }
       assert_redirected_to "/user_imports/#{import.to_param}/mapping"
@@ -83,6 +85,7 @@ RSpec.describe UserImportsController, :type => :controller do
       expect(import.settings['separator']).to eq(":")
       expect(import.settings['wrapper']).to eq("|")
       expect(import.settings['encoding']).to eq("UTF-8")
+      expect(import.settings['notifications']).to eq("1")
       expect(import.total_items).to eq(2)
     end
 
@@ -265,6 +268,58 @@ RSpec.describe UserImportsController, :type => :controller do
         end
       end
 
+    end
+
+  end
+
+  context "import users with option notification" do
+    before { ActionMailer::Base.deliveries = [] }
+
+    def run_import_with_option_notification(fixture_name = 'import_users.csv', notify)      
+      import = generate_user_import_with_mapping(fixture_name)      
+      import.settings['notifications'] = notify
+      import.save!
+      post :run, :params => {
+        :id => import
+      }      
+      import.reload
+    end
+
+    it "run_should_not_notify_users_by_mail_if_notification_unselected" do
+      run_import_with_option_notification('0')
+      expect(ActionMailer::Base.deliveries.count).to eq(0)
+    end
+    
+    it "run_should_notify_users_by_mail_if_notification_selected" do
+      run_import_with_option_notification('1')
+      user = User.order('id DESC').first
+      mail = ActionMailer::Base.deliveries.last
+
+      expect(ActionMailer::Base.deliveries.count).to eq(2)      
+      expect(mail).to be_truthy
+
+      expect(mail.bcc).to include(user.mail)
+      expect(mail.subject).to eq("Your Redmine account activation")
+      expect(mail.body.to_yaml).to include("Your account information")
+      expect(mail.body.to_yaml).to include("Login")
+      expect(mail.body.to_yaml).to include("Password")
+      expect(mail.body.to_yaml).to include("Sign in")
+    end
+
+    it "run_should_notify_just_new_users_by_mail_if_notification_selected" do
+      run_import_with_option_notification('import_users_exists.csv','1')
+      user = User.order('id DESC').first
+      mail = ActionMailer::Base.deliveries.last
+
+      expect(ActionMailer::Base.deliveries.count).to eq(1)      
+      expect(mail).to be_truthy
+
+      expect(mail.bcc).to include(user.mail)
+      expect(mail.subject).to eq("Your Redmine account activation")
+      expect(mail.body.to_yaml).to include("Your account information")
+      expect(mail.body.to_yaml).to include("Login")
+      expect(mail.body.to_yaml).to include("Password")
+      expect(mail.body.to_yaml).to include("Sign in")
     end
 
   end
