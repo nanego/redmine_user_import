@@ -273,7 +273,7 @@ RSpec.describe UserImportsController, :type => :controller do
   end
 
   context "import users with option notification" do
-    before { ActionMailer::Base.deliveries = [] }
+    before { ActionMailer::Base.deliveries.clear }
 
     def run_import_with_option_notification(fixture_name = 'import_users.csv', notify)      
       import = generate_user_import_with_mapping(fixture_name)      
