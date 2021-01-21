@@ -17,6 +17,10 @@
       <label for="import_settings_encoding"><%= l(:label_encoding) %></label>
       <%= select_tag 'import_settings[encoding]', options_for_select(Setting::ENCODINGS, @import.settings['encoding'] || 'UTF-8') %>
     </p>
+    <p>
+      <label for="import_settings_notifications"><%= l(:label_import_notifications)%></label>
+      <%= check_box_tag 'import_settings[notifications]', '1', "#{@import.settings['notifications']}" == '1' %>
+    </p>   
   </fieldset>
   <p><%= submit_tag l(:label_next).html_safe + " &#187;".html_safe, :name => nil %></p>
 <% end %>

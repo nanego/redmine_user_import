@@ -95,9 +95,12 @@ class UserImportsController < ApplicationController
     functions = Function.where(id: @import.settings['memberships']['functions']) if Redmine::Plugin.installed?(:redmine_limited_visibility)
 
     if projects.present? && roles.present?
-      @import.saved_objects.each do |user|
-        projects.each do |project|
-          create_member_for_import_users(user, project, roles, functions)
+
+      if @import.finished?
+        @import.saved_objects.each do |user|
+          projects.each do |project|
+            create_member_for_import_users(user, project, roles, functions)
+          end
         end
       end
        # update the information of user who already existed
