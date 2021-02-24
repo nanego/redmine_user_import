@@ -3,8 +3,6 @@ Redmine user import
 
 Easily import users from CSV files.
 
-[![Build Status](https://travis-ci.com/nanego/redmine_user_import.svg?branch=master)](https://travis-ci.com/nanego/redmine_user_import)
-
 ## Installation
 
 Note that this plugin has a required dependency. That's why you will also have to install this "technical" plugin:
@@ -14,16 +12,16 @@ Please apply general instructions for plugins [here](http://www.redmine.org/wiki
 
 ## Test status
 
-|Plugin branch| Redmine Version   | Test Status       |
-|-------------|-------------------|-------------------|
-|master       | 4.1.1             | [![Build2][1]][5] |  
-|master       | 4.0.7             | [![Build3][2]][5] |
-|master       | master            | [![Build1][3]][5] |
+|Plugin branch| Redmine Version   | Test Status      |
+|-------------|-------------------|------------------|
+|master       | 4.1.1             | [![4.1.1][1]][5] |  
+|master       | 4.0.7             | [![4.0.7][2]][5] |
+|master       | master            | [![master][3]][5]|
 
-[1]: https://travis-matrix-badges.herokuapp.com/repos/nanego/redmine_user_import/branches/master/1?use_travis_com=true
-[2]: https://travis-matrix-badges.herokuapp.com/repos/nanego/redmine_user_import/branches/master/2?use_travis_com=true
-[3]: https://travis-matrix-badges.herokuapp.com/repos/nanego/redmine_user_import/branches/master/3?use_travis_com=true
-[5]: https://travis-ci.com/nanego/redmine_user_import
+[1]: https://github.com/nanego/redmine_user_import/actions/workflows/4_1_1.yml/badge.svg
+[2]: https://github.com/nanego/redmine_user_import/actions/workflows/4_0_7.yml/badge.svg
+[3]: https://github.com/nanego/redmine_user_import/actions/workflows/master.yml/badge.svg
+[5]: https://github.com/nanego/redmine_user_import/actions
 
 ## Contributing
 
