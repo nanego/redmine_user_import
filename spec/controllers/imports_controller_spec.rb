@@ -1,7 +1,7 @@
 require "spec_helper"
 require File.dirname(__FILE__) + "/../support/import_spec_helpers"
 
-RSpec.describe UserImportsController, :type => :controller do
+RSpec.describe ImportsController, :type => :controller do
   render_views
 
   fixtures :users, :email_addresses, :members, :member_roles, :roles, :projects
@@ -16,25 +16,25 @@ RSpec.describe UserImportsController, :type => :controller do
   end
 
   it "should_authorized_to_access_this_page" do
-    get :new
+    get(:new, :params => {:type => 'UserImport'})
     assert_response :success
   end
 
-  it "should_not_authorized_to_access_this_page_user_without_permission" do    
+  it "should_not_authorized_to_access_this_page_user_without_permission" do
     User.current = nil
     @request.session[:user_id] = 7
 
-    get :new    
+    get(:new, :params => {:type => 'UserImport'})
     assert_response 403
   end
 
   it "shoud_display_permission_users_import"do
-    permission_array = Redmine::AccessControl.permissions.to_a.map(&:name)    
-    expect(permission_array).to include(:users_import)    
+    permission_array = Redmine::AccessControl.permissions.to_a.map(&:name)
+    expect(permission_array).to include(:users_import)
   end
   
 	it "new_should_display_the_upload_form" do
-		get :new
+		get(:new, :params => {:type => 'UserImport'})
     assert_response :success
     assert_select 'input[name=?]', 'file'
   end
@@ -42,6 +42,7 @@ RSpec.describe UserImportsController, :type => :controller do
   it "create_should_save_the_file" do
     import_count = UserImport.count
     post :create, :params => {
+      :type => 'UserImport',
       :file => upload_user_test_file('import_users.csv', 'text/csv')
     }
 
@@ -79,7 +80,7 @@ RSpec.describe UserImportsController, :type => :controller do
           :notifications => "1",
         }
       }
-      assert_redirected_to "/user_imports/#{import.to_param}/mapping"
+      assert_redirected_to "/imports/#{import.to_param}/mapping"
 
       import.reload
       expect(import.settings['separator']).to eq(":")
@@ -99,17 +100,17 @@ RSpec.describe UserImportsController, :type => :controller do
 
       assert_response :success
       assert_select 'select[name=?]', 'import_settings[mapping][login]' do
-        assert_select 'option', 6
-        assert_select 'option[value="0"]', :text => 'login'
-        assert_select 'option[value="1"]', :text => 'lastname'
+        assert_select 'option', 14
+        assert_select 'option[value="1"]', :text => 'login'
         assert_select 'option[value="2"]', :text => 'firstname'
-        assert_select 'option[value="3"]', :text => 'mail'
-        assert_select 'option[value="4"]', :text => 'Organization'
+        assert_select 'option[value="3"]', :text => 'lastname'
+        assert_select 'option[value="4"]', :text => 'mail'
+        assert_select 'option[value="12"]', :text => 'Organization'
       end
 
       assert_select 'table.sample-data' do
         assert_select 'tr', 3
-        assert_select 'td', 15
+        assert_select 'td', 39
       end
     end
 
@@ -213,11 +214,12 @@ RSpec.describe UserImportsController, :type => :controller do
       expect(ImportItem.count).to eq 2
       expect(Journal.count).to eq(2) if Redmine::Plugin.installed?(:redmine_admin_activity)
       expect(JournalDetail.count).to eq(4) if Redmine::Plugin.installed?(:redmine_admin_activity)
-      assert_redirected_to "/user_imports/#{import.to_param}"
+      assert_redirected_to "/imports/#{import.to_param}"
     end
 
     it "should_show_without_errors" do
       import.run
+      
       assert_equal 0, import.unsaved_items.count
 
       get :show, :params => {
@@ -225,7 +227,7 @@ RSpec.describe UserImportsController, :type => :controller do
       }
       assert_response :success
 
-      assert_select 'ul#saved-items li', import.saved_items.count
+      assert_select 'table#saved-items tbody tr', 2
       assert_select 'table#unsaved-items', 0
     end
 
@@ -275,8 +277,8 @@ RSpec.describe UserImportsController, :type => :controller do
   context "import users with option notification" do
     before { ActionMailer::Base.deliveries.clear }
 
-    def run_import_with_option_notification(fixture_name = 'import_users.csv', notify)      
-      import = generate_user_import_with_mapping(fixture_name)      
+    def run_import_with_option_notification(fixture_name = 'import_users.csv', notify)
+      import = generate_user_import_with_mapping(fixture_name)
       import.settings['notifications'] = notify
       import.save!
       post :run, :params => {
@@ -287,22 +289,24 @@ RSpec.describe UserImportsController, :type => :controller do
 
     it "run_should_not_notify_users_by_mail_if_notification_unselected" do
       run_import_with_option_notification('0')
-      expect(ActionMailer::Base.deliveries.count).to eq(0)
+      # Even if we do not enable the option to send alerts during import, we will send two mails because an administrator user is present
+      # First mail for admin, second for user imported as admin
+      expect(ActionMailer::Base.deliveries.count).to eq(2)
     end
     
     it "run_should_notify_users_by_mail_if_notification_selected" do
       run_import_with_option_notification('1')
       user = User.order('id DESC').first
       mail = ActionMailer::Base.deliveries.last
-
-      expect(ActionMailer::Base.deliveries.count).to eq(2)      
+      # Here there are 4 mails, 2 mails because of add user as admin , 2 mails because of import 2 users
+      expect(ActionMailer::Base.deliveries.count).to eq(4)
       expect(mail).to be_truthy
 
       expect(mail.bcc).to include(user.mail)
       expect(mail.subject).to eq("Your Redmine account activation")
       expect(mail.body.to_yaml).to include("Your account information")
       expect(mail.body.to_yaml).to include("Login")
-      expect(mail.body.to_yaml).to include("Password")
+      expect(mail.body.to_yaml).to include("password")
       expect(mail.body.to_yaml).to include("Sign in")
     end
 
@@ -311,14 +315,14 @@ RSpec.describe UserImportsController, :type => :controller do
       user = User.order('id DESC').first
       mail = ActionMailer::Base.deliveries.last
 
-      expect(ActionMailer::Base.deliveries.count).to eq(1)      
+      expect(ActionMailer::Base.deliveries.count).to eq(1)
       expect(mail).to be_truthy
 
       expect(mail.bcc).to include(user.mail)
       expect(mail.subject).to eq("Your Redmine account activation")
       expect(mail.body.to_yaml).to include("Your account information")
       expect(mail.body.to_yaml).to include("Login")
-      expect(mail.body.to_yaml).to include("Password")
+      expect(mail.body.to_yaml).to include("password")
       expect(mail.body.to_yaml).to include("Sign in")
     end
 

@@ -1,3 +1,3 @@
-login;lastname;firstname;mail;Organization
-user1;Dupont;Jean;j.dupont@example.com;org-a
-user2;Durant;Marc;m.durant@example.com;newOrg
+row;login;firstname;lastname;mail;language;admin;auth_source;password;must_change_passwd;status;phone_number;Organization
+1;user1;One;CSV;user1@somenet.foo;en;yes;;password;yes;active;000-1111-2222;org-a
+2;user2;Two;Import;user2@somenet.foo;en;no;;password;no;locked;333-4444-5555;newOrg
