@@ -1,3 +1,8 @@
+ActiveSupport::Reloader.to_prepare do
+  require_dependency 'redmine_user_import/controllers/imports_controller'
+  require_dependency 'redmine_user_import/models/user_import'
+end
+
 Redmine::Plugin.register :redmine_user_import do
   name 'Redmine User Import plugin'
   author 'Vincent ROBERT'

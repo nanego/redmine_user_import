@@ -19,8 +19,8 @@
     </thead>
     <% @imports.each do |import| %>
       <tr>
-        <td class="import"><%= link_to import.id, user_import_path(import) %></td>
-        <td class="import"><%= link_to import.filename, user_import_path(import) %></td>
+        <td class="import"><%= link_to import.id, import_path(import) %></td>
+        <td class="import"><%= link_to import.filename, import_path(import) %></td>
         <td class="import"><%= import.user %></td>
         <td class="import"><%= import.settings.reject { |k, v| k == 'mapping' || k == 'memberships' } %></td>
         <td class="import"><%= import.settings['mapping'] %></td>
