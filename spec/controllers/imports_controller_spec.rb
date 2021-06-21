@@ -16,7 +16,7 @@ RSpec.describe ImportsController, :type => :controller do
   end
 
   it "should_authorized_to_access_this_page" do
-    get(:new, :params => {:type => 'UserImport'})
+    get(:new, :params => { :type => 'UserImport' })
     assert_response :success
   end
 
@@ -24,17 +24,17 @@ RSpec.describe ImportsController, :type => :controller do
     User.current = nil
     @request.session[:user_id] = 7
 
-    get(:new, :params => {:type => 'UserImport'})
+    get(:new, :params => { :type => 'UserImport' })
     assert_response 403
   end
 
-  it "shoud_display_permission_users_import"do
+  it "shoud_display_permission_users_import" do
     permission_array = Redmine::AccessControl.permissions.to_a.map(&:name)
     expect(permission_array).to include(:users_import)
   end
-  
-	it "new_should_display_the_upload_form" do
-		get(:new, :params => {:type => 'UserImport'})
+
+  it "new_should_display_the_upload_form" do
+    get(:new, :params => { :type => 'UserImport' })
     assert_response :success
     assert_select 'input[name=?]', 'file'
   end
@@ -200,6 +200,9 @@ RSpec.describe ImportsController, :type => :controller do
     end
 
     it "run_should_check_import_object" do
+      prev_journal_count = Journal.count
+      prev_journal_detail_count = JournalDetail.count
+
       import.settings['memberships'] = { "projects" => ["1", "3"], "roles" => ["1", "2"], "functions" => ["1"] }
       import.save!
       post :run, :params => {
@@ -212,14 +215,16 @@ RSpec.describe ImportsController, :type => :controller do
       expect(import.type).to eq 'UserImport'
       expect(UserImport.count).to eq 1
       expect(ImportItem.count).to eq 2
-      expect(Journal.count).to eq(2) if Redmine::Plugin.installed?(:redmine_admin_activity)
-      expect(JournalDetail.count).to eq(4) if Redmine::Plugin.installed?(:redmine_admin_activity)
+      if Redmine::Plugin.installed?(:redmine_admin_activity)
+        expect(Journal.count - prev_journal_count).to eq(2)
+        expect(JournalDetail.count - prev_journal_detail_count).to eq(4)
+      end
       assert_redirected_to "/imports/#{import.to_param}"
     end
 
     it "should_show_without_errors" do
       import.run
-      
+
       assert_equal 0, import.unsaved_items.count
 
       get :show, :params => {
@@ -283,7 +288,7 @@ RSpec.describe ImportsController, :type => :controller do
       import.save!
       post :run, :params => {
         :id => import
-      }      
+      }
       import.reload
     end
 
@@ -293,7 +298,7 @@ RSpec.describe ImportsController, :type => :controller do
       # First mail for admin, second for user imported as admin
       expect(ActionMailer::Base.deliveries.count).to eq(2)
     end
-    
+
     it "run_should_notify_users_by_mail_if_notification_selected" do
       run_import_with_option_notification('1')
       user = User.order('id DESC').first
@@ -311,7 +316,7 @@ RSpec.describe ImportsController, :type => :controller do
     end
 
     it "run_should_notify_just_new_users_by_mail_if_notification_selected" do
-      run_import_with_option_notification('import_users_exists.csv','1')
+      run_import_with_option_notification('import_users_exists.csv', '1')
       user = User.order('id DESC').first
       mail = ActionMailer::Base.deliveries.last
 
