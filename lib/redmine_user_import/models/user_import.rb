@@ -8,6 +8,9 @@ module RedmineUserImport
       # call build_object of UserImport and add the following tasks 
       user = super(row, item)
 
+      # generate login if not exist
+      user.login = user.mail.split("@").first.downcase if user.login == nil
+      
       if Redmine::Plugin.installed?(:redmine_organizations)
 	      if organization_name = row_value(row, 'organization')
 	        if organization = Organization.find_by_identifier(organization_name.parameterize)

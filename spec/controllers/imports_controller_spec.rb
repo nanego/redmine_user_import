@@ -333,4 +333,38 @@ RSpec.describe ImportsController, :type => :controller do
 
   end
 
+  it "should_generate_login_if_not_exist" do
+    import = generate_user_import('import_users_without_login.csv')
+
+    import.settings = {
+      'separator' => ';', 'wrapper' => '"', 'encoding' => 'UTF-8', "notifications" => "0",
+      'mapping' => {      
+        'firstname' => '1',
+        'lastname' => '2',
+        'mail' => '3',
+        'language' => '4',
+        'admin' => '5',
+        'auth_source' => '6',
+        'password' => '7',
+        'must_change_passwd' => '8',
+        'status' => '9',
+        "phone_number" => "10",
+        "organization" => "11",
+        "create_organizations" => "0"
+      }
+    }
+    import.save!
+    import
+    
+    post :run, :params => {
+      :id => import
+    }
+    
+    import.reload
+
+    user = User.order('id DESC').first    
+    expect(user.login).to eq(user.mail.split("@").first.downcase)
+    expect(import.unsaved_items.count).to eq(0)
+    
+  end
 end
