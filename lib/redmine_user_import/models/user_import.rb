@@ -9,7 +9,8 @@ module RedmineUserImport
       user = super(row, item)
 
       # generate login if not exist
-      user.login = user.mail.split("@").first.downcase if user.login == nil
+      
+      user.login = user.mail.split("@").first.downcase if user.mail.present? && user.login == nil
       
       if Redmine::Plugin.installed?(:redmine_organizations)
 	      if organization_name = row_value(row, 'organization')
@@ -27,7 +28,7 @@ module RedmineUserImport
 	    end
 
 	    # check if user is already present
-	    known_user = User.joins(:email_addresses).where('LOWER(email_addresses.address) = ?', row_value(row, 'mail').downcase.strip).first
+	    known_user = User.joins(:email_addresses).where('LOWER(email_addresses.address) = ?', row_value(row, 'mail').downcase.strip).first if row_value(row, 'mail')
 	    if known_user.present?
 	      updated_users << known_user
 	      known_user.update_attribute(:organization_id, organization.id) if organization.present? && Redmine::Plugin.installed?(:redmine_organizations)
