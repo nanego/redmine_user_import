@@ -353,8 +353,7 @@ RSpec.describe ImportsController, :type => :controller do
         "create_organizations" => "0"
       }
     }
-    import.save!
-    import
+    import.save!    
     
     post :run, :params => {
       :id => import
@@ -362,9 +361,40 @@ RSpec.describe ImportsController, :type => :controller do
     
     import.reload
 
-    user = User.order('id DESC').first    
+    user = User.order('id DESC').first
     expect(user.login).to eq(user.mail.split("@").first.downcase)
     expect(import.unsaved_items.count).to eq(0)
     
+  end
+
+  it "should_show_with_errors_unsaved_items_when_mail_not_exist" do
+      
+      import = generate_user_import('import_users_without_mail.csv')
+      import.settings = {
+        'separator' => ';', 'wrapper' => '"', 'encoding' => 'UTF-8', "notifications" => "0",
+        'mapping' => { 
+          'login' => '1',     
+          'firstname' => '2',
+          'lastname' => '3',          
+          'language' => '4',
+          'admin' => '5',
+          'auth_source' => '6',
+          'password' => '7',
+          'must_change_passwd' => '8',
+          'status' => '9',
+          "phone_number" => "10",
+          "organization" => "11",
+          "create_organizations" => "0"
+        }
+      }
+      import.save!
+      
+      post :run, :params => {
+        :id => import
+      }
+    
+      import.reload 
+      
+      expect(import.unsaved_items.count).to eq(2)     
   end
 end
