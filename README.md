@@ -14,10 +14,10 @@ Please apply general instructions for plugins [here](http://www.redmine.org/wiki
 
 |Plugin branch| Redmine Version   | Test Status      |
 |-------------|-------------------|------------------|
-|master       | 4.2.7             | [![4.2.7][1]][5] |
+|master       | 4.2.9             | [![4.2.9][1]][5] |
 |master       | master            | [![master][2]][5]|
 
-[1]: https://github.com/nanego/redmine_user_import/actions/workflows/4_2_7.yml/badge.svg
+[1]: https://github.com/nanego/redmine_user_import/actions/workflows/4_2_9.yml/badge.svg
 [2]: https://github.com/nanego/redmine_user_import/actions/workflows/master.yml/badge.svg
 [5]: https://github.com/nanego/redmine_user_import/actions
 
