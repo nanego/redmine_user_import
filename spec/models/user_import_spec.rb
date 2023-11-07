@@ -1,5 +1,5 @@
 require "spec_helper"
-require File.dirname(__FILE__) + "/../support/import_spec_helpers"
+require_relative "../support/import_spec_helpers"
 
 describe UserImport, type: :model do
 
