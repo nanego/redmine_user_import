@@ -52,11 +52,11 @@ describe UserImport, type: :model do
   it "removes the uploaded file" do
     import = import_with_new_users
     file_path = import.filepath
-    assert File.exists?(file_path)
+    assert File.exist?(file_path)
 
     import.run
 
-    assert !File.exists?(file_path)
+    assert !File.exist?(file_path)
   end
 
 end
