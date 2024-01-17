@@ -308,11 +308,10 @@ RSpec.describe ImportsController, :type => :controller do
       expect(mail).to be_truthy
 
       if Redmine::VERSION::MAJOR >= 5
-        expect(default_mail['to'].value).to include User.find(2).mail
+        expect(mail.to).to include(user.mail)
       else
-        expect(default_mail['bcc'].value).to include User.find(2).mail
+        expect(mail.bcc).to include(user.mail)
       end
-
       expect(mail.subject).to eq("Your Redmine account activation")
       expect(mail.body.to_yaml).to include("Your account information")
       expect(mail.body.to_yaml).to include("Login")
@@ -329,11 +328,10 @@ RSpec.describe ImportsController, :type => :controller do
       expect(mail).to be_truthy
 
       if Redmine::VERSION::MAJOR >= 5
-        expect(default_mail['to'].value).to include User.find(2).mail
+        expect(mail.to).to include(user.mail)
       else
-        expect(default_mail['bcc'].value).to include User.find(2).mail
+        expect(mail.bcc).to include(user.mail)
       end
-
       expect(mail.subject).to eq("Your Redmine account activation")
       expect(mail.body.to_yaml).to include("Your account information")
       expect(mail.body.to_yaml).to include("Login")
