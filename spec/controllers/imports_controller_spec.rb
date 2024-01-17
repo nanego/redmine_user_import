@@ -281,7 +281,6 @@ RSpec.describe ImportsController, :type => :controller do
 
   context "import users with option notification" do
     before { ActionMailer::Base.deliveries.clear }
-    let(:user_notified_by_extend_object) { RedmineUserImport::Models::UserImport.private_methods.include?(:extend_object) }
 
     def run_import_with_option_notification(fixture_name = 'import_users.csv', notify)
       import = generate_user_import_with_mapping(fixture_name)
@@ -308,11 +307,12 @@ RSpec.describe ImportsController, :type => :controller do
       expect(ActionMailer::Base.deliveries.count).to eq(4)
       expect(mail).to be_truthy
 
-      if user_notified_by_extend_object #only useful for Redmine < 5
-        expect(mail.to).to include(user.mail)
+      if Redmine::VERSION::MAJOR >= 5
+        expect(default_mail['to'].value).to include User.find(2).mail
       else
-        expect(mail.bcc).to include(user.mail)
+        expect(default_mail['bcc'].value).to include User.find(2).mail
       end
+
       expect(mail.subject).to eq("Your Redmine account activation")
       expect(mail.body.to_yaml).to include("Your account information")
       expect(mail.body.to_yaml).to include("Login")
@@ -328,11 +328,12 @@ RSpec.describe ImportsController, :type => :controller do
       expect(ActionMailer::Base.deliveries.count).to eq(1)
       expect(mail).to be_truthy
 
-      if user_notified_by_extend_object #only useful for Redmine < 5
-        expect(mail.to).to include(user.mail)
+      if Redmine::VERSION::MAJOR >= 5
+        expect(default_mail['to'].value).to include User.find(2).mail
       else
-        expect(mail.bcc).to include(user.mail)
+        expect(default_mail['bcc'].value).to include User.find(2).mail
       end
+
       expect(mail.subject).to eq("Your Redmine account activation")
       expect(mail.body.to_yaml).to include("Your account information")
       expect(mail.body.to_yaml).to include("Login")
