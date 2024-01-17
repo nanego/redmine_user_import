@@ -94,13 +94,6 @@ jobs:
           rm -f .rubocop*
           cp plugins/redmine_base_rspec/spec/support/database-${{ matrix.db }}.yml config/database.yml
 
-      - name: Prepare Redmine source
-        working-directory: redmine
-        run: |
-          sed -i '/rubocop/d' Gemfile
-          rm -f .rubocop*
-          cp plugins/redmine_base_rspec/spec/support/database-${{ matrix.db }}.yml config/database.yml
-
       - name: Install Ruby dependencies
         working-directory: redmine
         run: |
