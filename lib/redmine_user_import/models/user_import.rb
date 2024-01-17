@@ -36,7 +36,7 @@ module RedmineUserImport
           known_user.update_attribute(:organization_id, organization.id) if organization.present? && Redmine::Plugin.installed?(:redmine_organizations)
         else
           # add callback for new users
-          add_callback(item.position, 'notify_by_mail') if self.settings["notifications"] == "1" unless self.private_methods.include?(:extend_object) #only useful for Redmine < 5
+          add_callback(item.position, 'notify_by_mail') if self.settings["notifications"] == "1" unless UserImport.private_methods.include?(:extend_object) #only useful for Redmine < 5
         end
         user
 

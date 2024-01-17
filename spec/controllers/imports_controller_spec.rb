@@ -281,6 +281,7 @@ RSpec.describe ImportsController, :type => :controller do
 
   context "import users with option notification" do
     before { ActionMailer::Base.deliveries.clear }
+    let(:user_notified_by_extend_object) { RedmineUserImport::Models::UserImport.private_methods.include?(:extend_object) }
 
     def run_import_with_option_notification(fixture_name = 'import_users.csv', notify)
       import = generate_user_import_with_mapping(fixture_name)
@@ -307,7 +308,11 @@ RSpec.describe ImportsController, :type => :controller do
       expect(ActionMailer::Base.deliveries.count).to eq(4)
       expect(mail).to be_truthy
 
-      expect(mail.bcc).to include(user.mail)
+      if user_notified_by_extend_object #only useful for Redmine < 5
+        expect(mail.to).to include(user.mail)
+      else
+        expect(mail.bcc).to include(user.mail)
+      end
       expect(mail.subject).to eq("Your Redmine account activation")
       expect(mail.body.to_yaml).to include("Your account information")
       expect(mail.body.to_yaml).to include("Login")
@@ -323,7 +328,11 @@ RSpec.describe ImportsController, :type => :controller do
       expect(ActionMailer::Base.deliveries.count).to eq(1)
       expect(mail).to be_truthy
 
-      expect(mail.bcc).to include(user.mail)
+      if user_notified_by_extend_object #only useful for Redmine < 5
+        expect(mail.to).to include(user.mail)
+      else
+        expect(mail.bcc).to include(user.mail)
+      end
       expect(mail.subject).to eq("Your Redmine account activation")
       expect(mail.body.to_yaml).to include("Your account information")
       expect(mail.body.to_yaml).to include("Login")
@@ -338,7 +347,7 @@ RSpec.describe ImportsController, :type => :controller do
 
     import.settings = {
       'separator' => ';', 'wrapper' => '"', 'encoding' => 'UTF-8', "notifications" => "0",
-      'mapping' => {      
+      'mapping' => {
         'firstname' => '1',
         'lastname' => '2',
         'mail' => '3',
@@ -353,29 +362,29 @@ RSpec.describe ImportsController, :type => :controller do
         "create_organizations" => "0"
       }
     }
-    import.save!    
-    
+    import.save!
+
     post :run, :params => {
       :id => import
     }
-    
+
     import.reload
 
     user = User.order('id DESC').first
     expect(user.login).to eq(user.mail.split("@").first.downcase)
     expect(import.unsaved_items.count).to eq(0)
-    
+
   end
 
   it "should_show_with_errors_unsaved_items_when_mail_not_exist" do
-      
+
       import = generate_user_import('import_users_without_mail.csv')
       import.settings = {
         'separator' => ';', 'wrapper' => '"', 'encoding' => 'UTF-8', "notifications" => "0",
-        'mapping' => { 
-          'login' => '1',     
+        'mapping' => {
+          'login' => '1',
           'firstname' => '2',
-          'lastname' => '3',          
+          'lastname' => '3',
           'language' => '4',
           'admin' => '5',
           'auth_source' => '6',
@@ -388,13 +397,13 @@ RSpec.describe ImportsController, :type => :controller do
         }
       }
       import.save!
-      
+
       post :run, :params => {
         :id => import
       }
-    
-      import.reload 
-      
-      expect(import.unsaved_items.count).to eq(2)     
+
+      import.reload
+
+      expect(import.unsaved_items.count).to eq(2)
   end
 end
