@@ -89,8 +89,7 @@ jobs:
       - name: Prepare Redmine source
         working-directory: redmine
         run: |
-          rm -f test/integration/routing/plugins_test.rb # Fix routing tests # TODO Remove this line when https://www.redmine.org/issues/38707 is fixed
-          cp plugins/redmine_user_import/config/initializers/rspec.rb config/initializers/rspec.rb # temporal solution,TODO Remove this line when redmine_base_rspec gems are updated
+          rm -f test/integration/routing/plugins_test.rb # Fix routing tests # TODO Remove this line when https://www.redmine.org/issues/38707 is fixed          
           sed -i '/rubocop/d' Gemfile
           rm -f .rubocop*
           cp plugins/redmine_base_rspec/spec/support/database-${{ matrix.db }}.yml config/database.yml
@@ -152,7 +151,9 @@ jobs:
         env:
           RAILS_ENV: test
         working-directory: redmine
-        run: bundle exec rails redmine:plugins:test NAME=${{ env.PLUGIN_NAME }} RUBYOPT="-W0"
+        run: |
+          cp plugins/redmine_user_import/config/initializers/rspec.rb config/initializers/rspec.rb # temporal solution,TODO Remove this line when redmine_base_rspec gems are updated
+          bundle exec rails redmine:plugins:test NAME=${{ env.PLUGIN_NAME }} RUBYOPT="-W0"
 
       - name: Run uninstall test
         env:
