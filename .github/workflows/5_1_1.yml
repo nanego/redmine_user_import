@@ -90,6 +90,7 @@ jobs:
         working-directory: redmine
         run: |
           rm -f test/integration/routing/plugins_test.rb # Fix routing tests # TODO Remove this line when https://www.redmine.org/issues/38707 is fixed
+          cp plugins/redmine_user_import/config/initializers/rspec.rb config/initializers/rspec.rb # temporal solution,TODO Remove this line when redmine_base_rspec gems are updated
           sed -i '/rubocop/d' Gemfile
           rm -f .rubocop*
           cp plugins/redmine_base_rspec/spec/support/database-${{ matrix.db }}.yml config/database.yml
