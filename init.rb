@@ -1,3 +1,5 @@
+require_relative 'lib/redmine_user_import/hooks'
+
 Redmine::Plugin.register :redmine_user_import do
   name 'Redmine User Import plugin'
   author 'Vincent ROBERT'
@@ -8,11 +10,4 @@ Redmine::Plugin.register :redmine_user_import do
   requires_redmine_plugin :redmine_base_deface, :version_or_higher => '0.0.1'
 
   permission :users_import, { :controller => 'user_imports' }
-end
-
-class ModelHook < Redmine::Hook::Listener
-  def after_plugins_loaded(_context = {})
-    require_relative 'lib/redmine_user_import/controllers/imports_controller'
-    require_relative 'lib/redmine_user_import/models/user_import'
-  end
 end
