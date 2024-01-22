@@ -19,7 +19,7 @@ Please apply general instructions for plugins [here](http://www.redmine.org/wiki
 |master       | master          | [![master][3]][5] |
 
 [1]: https://github.com/nanego/redmine_user_import/actions/workflows/4_2_11.yml/badge.svg
-[2]: https://github.com/nanego/redmine_user_import/actions/workflows/5_1_0.yml/badge.svg
+[2]: https://github.com/nanego/redmine_user_import/actions/workflows/5_1_1.yml/badge.svg
 [3]: https://github.com/nanego/redmine_user_import/actions/workflows/master.yml/badge.svg
 [5]: https://github.com/nanego/redmine_user_import/actions
 
