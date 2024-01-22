@@ -216,8 +216,8 @@ RSpec.describe ImportsController, :type => :controller do
       expect(UserImport.count).to eq 1
       expect(ImportItem.count).to eq 2
       if Redmine::Plugin.installed?(:redmine_admin_activity)
-        expect(Journal.count - prev_journal_count).to eq(2)
-        expect(JournalDetail.count - prev_journal_detail_count).to eq(4)
+        expect(Journal.count - prev_journal_count).to eq(4)
+        expect(JournalDetail.count - prev_journal_detail_count).to eq(8)
       end
       assert_redirected_to "/imports/#{import.to_param}"
     end
